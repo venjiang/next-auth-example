@@ -10,7 +10,10 @@ import {PrismaAdapter} from "@next-auth/prisma-adapter"
 import {PrismaClient} from '@prisma/client'
 
 const prisma = new PrismaClient()
-
+// prisma.user.findOne({where: {id: 1}}).then(user => console.log(user))
+// prisma.user.findUnique()
+const adapter = PrismaAdapter(prisma)
+// adapter.getUserByAccount
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
 export const authOptions: NextAuthOptions = {
@@ -62,20 +65,36 @@ export const authOptions: NextAuthOptions = {
         colorScheme: "light",
     },
     callbacks: {
-        async jwt({token}) {
+        jwt({token, account, user}) {
             token.userRole = "admin"
+            if (account) {
+                token.accessToken = account.access_token
+                console.log("[jwt] account:", account)
+            }
+
+            console.log("[jwt] token:", token)
+            user && (token.user = user)
+            console.log("[jwt] user:", user)
             return token
         },
-        async signIn({user}) {
-            user.role = "admin"
+        session({session, token, user}) {
+            // session.accessToken = token.accessToken
+            console.log("[session] session:", session)
+            console.log("[session] token:", token)
+            console.log("[session] user:", user)
+            // user.role = token.userRole
+            session.user.role = user.role
+            return session
+        },
+        signIn({user}) {
+            user.role = "team"
             console.log("user:", user)
             return true
         },
     },
-    session: {
-        strategy: "jwt",
-
-    },
+    // session: {
+    //     strategy: "jwt",
+    // },
 }
 
 export default NextAuth(authOptions)
