@@ -8,6 +8,7 @@ export default withAuth({
             // req.nextUrl.pathname !== "/admin" || token?.userRole === "admin",
             console.log("[withAuth] token:", token)
             console.log("[withAuth] req:", req)
+            // console.log("[withAuth] session-token:", req.cookies["next-auth.session-token"])
             const result = req.nextUrl.pathname !== "/admin"
             return result
         },

@@ -8,6 +8,7 @@ import Auth0Provider from "next-auth/providers/auth0"
 // import EmailProvider from "next-auth/providers/email"
 import {PrismaAdapter} from "@next-auth/prisma-adapter"
 import {PrismaClient} from '@prisma/client'
+import jwt from "jsonwebtoken"
 
 const prisma = new PrismaClient()
 // prisma.user.findOne({where: {id: 1}}).then(user => console.log(user))
@@ -17,6 +18,17 @@ const adapter = PrismaAdapter(prisma)
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
 export const authOptions: NextAuthOptions = {
+    // jwt overrides
+    // https://next-auth.js.org/configuration/nextjs#custom-jwt-decode-method
+
+    // jwt: {
+    //     async encode({secret, token}) {
+    //         return jwt.sign(token, secret)
+    //     },
+    //     async decode({secret, token}) {
+    //         return jwt.verify(token, secret)
+    //     },
+    // },
     // https://next-auth.js.org/adapters/prisma
     adapter: PrismaAdapter(prisma),
     // https://next-auth.js.org/configuration/providers/oauth
@@ -83,7 +95,7 @@ export const authOptions: NextAuthOptions = {
             console.log("[session] token:", token)
             console.log("[session] user:", user)
             // user.role = token.userRole
-            session.user.role = user.role
+            // session.user.role = user.role
             return session
         },
         signIn({user}) {
@@ -93,8 +105,9 @@ export const authOptions: NextAuthOptions = {
         },
     },
     // session: {
-    //     strategy: "jwt",
+    // strategy: "jwt",
     // },
+    secret: "lzq",
 }
 
 export default NextAuth(authOptions)
