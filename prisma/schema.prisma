@@ -46,6 +46,7 @@ model User {
   image         String?
   phone         String?
   role          String?   
+  login         String?   @map("login")
   accounts      Account[]
   sessions      Session[]
 

@@ -6,6 +6,7 @@ import TwitterProvider from "next-auth/providers/twitter"
 import Auth0Provider from "next-auth/providers/auth0"
 // import AppleProvider from "next-auth/providers/apple"
 // import EmailProvider from "next-auth/providers/email"
+import CredentialsProvider from "next-auth/providers/credentials"
 import {PrismaAdapter} from "@next-auth/prisma-adapter"
 import {PrismaClient} from '@prisma/client'
 import jwt from "jsonwebtoken"
@@ -57,6 +58,7 @@ export const authOptions: NextAuthOptions = {
         GithubProvider({
             clientId: process.env.GITHUB_ID,
             clientSecret: process.env.GITHUB_SECRET,
+            authorization: {params: {scope: 'read:user user:email'}},
 
         }),
         GoogleProvider({
@@ -72,42 +74,92 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.AUTH0_SECRET,
             issuer: process.env.AUTH0_ISSUER,
         }),
+        // the Credentials provider can only be used if JSON Web Tokens are enabled for sessions
+        // https://next-auth.js.org/providers/credentials
+        CredentialsProvider({
+            id: "domain-login",
+            name: "Domain Account",
+            async authorize(credentials, req) {
+                console.log("[authorize] credentials:", credentials)
+                const user = {
+                    /* add function to get user */
+                    id: "1",
+                    name: 'vincent',
+                    email: 'venjiang@readfog.com',
+                    image: 'https://avatars.githubusercontent.com/u/96467908?v=4',
+                    role: 'member',
+                    login: 'venjiangr',
+                }
+                return user
+            },
+            credentials: {
+                // domain: {
+                //     label: "Domain",
+                //     type: "text ",
+                //     placeholder: "CORPNET",
+                //     value: "CORPNET",
+                // },
+                username: {label: "Username", type: "text ", placeholder: "jsmith"},
+                password: {label: "Password", type: "password"},
+            },
+        }),
     ],
     theme: {
         colorScheme: "light",
     },
     callbacks: {
-        jwt({token, account, user}) {
+        jwt({token, account, user}) { // use jwt to store user info
+            // Persist the OAuth access_token to the token right after signin
             token.userRole = "admin"
             if (account) {
-                token.accessToken = account.access_token
+                // token.accessToken = account.access_token
                 console.log("[jwt] account:", account)
             }
 
             console.log("[jwt] token:", token)
             user && (token.user = user)
-            console.log("[jwt] user:", user)
+            console.log("[jwt] user:", token.user)
+
             return token
         },
-        session({session, token, user}) {
+        session({session, token, user}) { // use database to store user info
+            // Send properties to the client, like an access_token from a provider.
             // session.accessToken = token.accessToken
             console.log("[session] session:", session)
             console.log("[session] token:", token)
             console.log("[session] user:", user)
-            // user.role = token.userRole
-            // session.user.role = user.role
+            // 1. use jwt to store user info
+            // session.user = token.user
+            // session.user.role = token.userRole
+            // session.user.displayName = token.user.displayName
+            //
+            // 2. use credentials to store user info
+            if (token) {
+                session.user = token.user
+            }
+            // 3. use database to store user info
+            if (user) {
+                session.user.login = user.login
+                session.user.role = user.role
+            }
             return session
         },
-        signIn({user}) {
-            user.role = "team"
-            console.log("user:", user)
+        signIn({user, account, profile}) {
+            // user.role = "team"
+            // user profile login 
+            if (profile?.login) {
+                user.login = profile.login
+            }
+            console.log("[signIn] user:", user)
+            console.log("[singIn] account:", account)
+            console.log("[singIn] profile:", profile)
             return true
         },
     },
-    // session: {
-    // strategy: "jwt",
-    // },
-    secret: "lzq",
+    session: {
+        strategy: "jwt", // use jwt to store user info
+    },
+    secret: "abc",
 }
 
 export default NextAuth(authOptions)

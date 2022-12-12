@@ -37,10 +37,10 @@ export default function ProtectedPage() {
         <Layout>
             <h1>Protected Page</h1>
             <p>
-                <strong>{content ?? "\u00a0"}</strong>
+                content：  <strong>{content ?? "\u00a0"}</strong>
             </p>
             <p>
-                {session.user.role}
+                role：  {session.user.role}
             </p>
         </Layout>
     )

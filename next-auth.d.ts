@@ -13,12 +13,18 @@ declare module "next-auth/jwt" {
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
     interface Session {
+        // session: DefaultSession["session"],
+        session: {
+            sessionToken: string
+        } & DefaultSession["session"],
         user: {
             /** The user's postal address. */
             role: string
+            login: string
         } & DefaultSession["user"],
     }
     interface User {
         role: string
+        login: string
     }
 }
