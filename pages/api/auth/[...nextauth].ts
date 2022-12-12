@@ -108,7 +108,13 @@ export const authOptions: NextAuthOptions = {
         colorScheme: "light",
     },
     callbacks: {
-        jwt({token, account, user}) { // use jwt to store user info
+        jwt({token, account, user, profile}) { // use jwt to store user info
+            if (token) {
+                console.log("[jwt] token:", token)
+            }
+            if (profile) {
+                console.log("[jwt] profile:", profile)
+            }
             // Persist the OAuth access_token to the token right after signin
             token.userRole = "admin"
             if (account) {
@@ -145,7 +151,8 @@ export const authOptions: NextAuthOptions = {
             return session
         },
         signIn({user, account, profile}) {
-            // user.role = "team"
+            // extend fields: role default is admin
+            user.role = "admin"
             // user profile login 
             if (profile?.login) {
                 user.login = profile.login
@@ -156,10 +163,10 @@ export const authOptions: NextAuthOptions = {
             return true
         },
     },
-    session: {
-        strategy: "jwt", // use jwt to store user info
-    },
-    secret: "abc",
+    // session: {
+    //     strategy: "jwt", // use jwt to store user info
+    // },
+    secret: process.env.NEXTAUTH_SECRET,
 }
 
 export default NextAuth(authOptions)
